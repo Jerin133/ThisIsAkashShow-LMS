@@ -80,7 +80,7 @@ const Home = () => {
   return (
     <div className="bg-slate-50 min-h-screen">
       {/* ── Hero with Visible Stock Candlestick Chart Wallpaper ── */}
-      <section className="relative overflow-hidden bg-white border-b border-slate-200/80 pt-16 pb-20 md:pt-24 md:pb-28">
+      <section className="relative overflow-hidden bg-white border-b border-slate-200/80 pt-14 pb-16 md:pt-24 md:pb-28">
         {/* Visible Stock Chart Background Image with High-Key Light Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           <img
@@ -103,10 +103,10 @@ const Home = () => {
         <div className="relative mx-auto max-w-7xl px-6 z-10">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200/80 px-4 py-1.5 text-xs font-bold text-emerald-700 mb-6 shadow-2xs">
-                <TrendingUp size={14} className="text-emerald-600" /> Professional Trading & Market Academy
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 text-[11px] font-bold text-emerald-700 mb-5 shadow-2xs">
+                <TrendingUp size={13} className="text-emerald-600" /> Professional Trading & Market Academy
               </div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 leading-[1.12] tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-slate-900 leading-[1.12] tracking-tight">
                 Master the Markets.<br />
                 <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 bg-clip-text text-transparent">
                   Trade with Confidence.
@@ -132,8 +132,8 @@ const Home = () => {
               </div>
 
               {/* Trust pill */}
-              <div className="mt-10 flex items-center gap-4 text-xs font-semibold text-slate-500">
-                <div className="flex -space-x-2">
+              <div className="mt-8 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500">
+                <div className="flex -space-x-2 shrink-0">
                   {["#10b981", "#059669", "#0d9488", "#16a34a"].map((c, i) => (
                     <div
                       key={i}
@@ -144,7 +144,7 @@ const Home = () => {
                     </div>
                   ))}
                 </div>
-                <span>Trained over <span className="text-slate-900 font-bold">2,400+ active traders & investors</span></span>
+                <span>Trained over <span className="text-slate-900 font-bold">2,400+ active traders</span></span>
               </div>
             </div>
 
@@ -342,7 +342,7 @@ const Home = () => {
             <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-2">How It Works</p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900">Four easy steps to mastery</h2>
           </div>
-          <div className="grid gap-8 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
             {steps.map(({ num, title, desc }, i) => (
               <div key={num} className="relative text-center">
                 {i < steps.length - 1 && (
@@ -366,7 +366,7 @@ const Home = () => {
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-1.5 text-xs font-semibold text-emerald-200 mb-6">
             <Sparkles size={13} /> Start Your Learning Today
           </div>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-white leading-tight">
             Ready to upgrade your skillset?
           </h2>
           <p className="mt-4 text-emerald-200 text-base md:text-lg max-w-xl mx-auto">

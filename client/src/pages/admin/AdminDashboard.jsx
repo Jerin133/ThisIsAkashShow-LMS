@@ -56,7 +56,7 @@ const AdminDashboard = () => {
             <Sparkles size={13} className="text-emerald-600" /> Administrator Portal
           </div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Welcome back, {profile?.full_name || "Admin"} 👋
+            Welcome back, Master 👋
           </h1>
           <p className="mt-1 text-sm text-slate-600">
             Manage your courses, curriculum lectures, student enrollments, and revenue metrics.
