@@ -1,0 +1,213 @@
+import { useState } from "react";
+import { loginUser } from "../../services/auth";
+import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
+import { Eye, EyeOff, LogIn, BookOpen, Sparkles, Shield, TrendingUp, ArrowLeft } from "lucide-react";
+
+const Login = () => {
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const { user } = await loginUser(form.email, form.password);
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (profileError) throw profileError;
+      navigate(profile.role === "admin" ? "/admin/dashboard" : "/student/dashboard");
+    } catch (err) {
+      setError(err.message || "Invalid email or password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const features = [
+    { icon: BookOpen, text: "Access structured video courses" },
+    { icon: TrendingUp, text: "Track your learning progress" },
+    { icon: Shield, text: "Secure, protected content delivery" },
+  ];
+
+  return (
+    <div className="min-h-screen flex bg-gray-50">
+      {/* Left Panel — Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900 relative overflow-hidden flex-col justify-between p-12 text-white">
+        {/* Visible Stock Market Chart Texture */}
+        <div className="absolute inset-0 opacity-25 mix-blend-screen pointer-events-none">
+          <img
+            src="/images/trading-chart-bg.jpg"
+            alt="Trading Chart Background"
+            className="w-full h-full object-cover object-center filter grayscale contrast-125"
+          />
+        </div>
+
+        {/* Background gradient orbs */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-teal-500/15 rounded-full blur-3xl translate-x-1/3 translate-y-1/3 pointer-events-none" />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3">
+            <img
+              src="/images/akash-logo.png"
+              alt="ThisIsAkashShow"
+              className="h-11 w-11 rounded-full object-cover border-2 border-emerald-400/60 shadow-md bg-slate-900/40"
+              onError={(e) => { e.currentTarget.src = "/images/akash-logo.jpg"; }}
+            />
+            <span className="text-xl font-black text-white tracking-tight">ThisIsAkashShow</span>
+          </div>
+        </div>
+
+        <div className="relative z-10 space-y-8">
+          <div>
+            <h2 className="text-4xl font-extrabold text-white leading-tight">
+              Continue your<br />
+              <span className="text-emerald-400">trading journey</span>
+            </h2>
+            <p className="mt-4 text-emerald-100/90 text-base leading-relaxed max-w-sm">
+              Access your stock market courses, live breakdowns, and unlock new strategies every day.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {features.map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-emerald-300 border border-white/10">
+                  <Icon size={16} />
+                </div>
+                <span className="text-sm text-emerald-100 font-medium">{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative z-10">
+          <p className="text-xs text-emerald-300/80">© 2026 ThisIsAkashShow. All rights reserved.</p>
+        </div>
+      </div>
+
+      {/* Right Panel — Form */}
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md">
+          {/* Mobile logo */}
+          <div className="flex items-center gap-2.5 mb-8 lg:hidden">
+            <img
+              src="/images/akash-logo.png"
+              alt="ThisIsAkashShow"
+              className="h-9 w-9 rounded-full object-cover border-2 border-emerald-500 shadow-sm bg-slate-50"
+              onError={(e) => { e.currentTarget.src = "/images/akash-logo.jpg"; }}
+            />
+            <span className="text-lg font-black text-slate-900">ThisIsAkashShow</span>
+          </div>
+
+          <div className="mb-8">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-emerald-600 transition mb-6"
+            >
+              <ArrowLeft size={15} />
+              Back to Home
+            </Link>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Welcome back</h1>
+            <p className="mt-2 text-slate-500 text-sm">Sign in to your account to continue learning.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Email address
+              </label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                placeholder="you@example.com"
+                value={form.email}
+                onChange={handleChange}
+                required
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="block text-sm font-semibold text-slate-700">
+                  Password
+                </label>
+                <button type="button" className="text-xs text-emerald-600 hover:text-emerald-700 font-bold">
+                  Forgot password?
+                </button>
+              </div>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700">
+                {error}
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98] shadow-sm shadow-emerald-500/25"
+            >
+              {loading ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  <LogIn size={16} />
+                  Sign In
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-slate-500 font-medium">
+            Don't have an account?{" "}
+            <Link to="/register" className="font-bold text-emerald-600 hover:text-emerald-700">
+              Create one free
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
