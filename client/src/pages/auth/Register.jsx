@@ -72,7 +72,7 @@ const Register = () => {
         <div className="relative z-10">
           <div className="flex items-center gap-3">
             <img
-              src="/images/akash-logo.png"
+              src="/images/akash-logo.jpg"
               alt="ThisIsAkashShow"
               className="h-11 w-11 rounded-full object-cover border-2 border-emerald-400/60 shadow-md bg-slate-900/40"
               onError={(e) => { e.currentTarget.src = "/images/akash-logo.jpg"; }}
@@ -108,7 +108,7 @@ const Register = () => {
             <div className="flex items-center gap-3 mb-2">
               <div className="flex -space-x-2">
                 {["S", "R", "A", "K"].map((l, i) => (
-                  <div key={i} className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-900 text-[10px] font-bold text-white ${["bg-emerald-600","bg-teal-600","bg-green-600","bg-emerald-700"][i]}`}>{l}</div>
+                  <div key={i} className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-900 text-[10px] font-bold text-white ${["bg-emerald-600", "bg-teal-600", "bg-green-600", "bg-emerald-700"][i]}`}>{l}</div>
                 ))}
               </div>
               <span className="text-xs text-emerald-300 font-medium">+200 students this month</span>

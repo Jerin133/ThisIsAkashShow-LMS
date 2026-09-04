@@ -32,7 +32,7 @@ const Contact = () => {
           subject: form.subject,
           message: form.message,
           reply_to: form.email,
-          to_email: "jj0942754@gmail.com",
+          to_email: "akashdotj14@gmail.com",
         },
         EMAILJS_PUBLIC_KEY
       );
@@ -49,14 +49,14 @@ const Contact = () => {
     {
       icon: Mail,
       title: "Email Us",
-      detail: "support@lmsacademy.in",
+      detail: "akashdotj14@gmail.com",
       sub: "We reply within 24 hours",
       color: "bg-blue-50 text-blue-600",
     },
     {
       icon: Phone,
       title: "Call Us",
-      detail: "+91 98765 43210",
+      detail: "+91 63695 50672",
       sub: "Mon–Sat, 9am–6pm IST",
       color: "bg-emerald-50 text-emerald-600",
     },

@@ -59,7 +59,7 @@ const Login = () => {
         <div className="relative z-10">
           <div className="flex items-center gap-3">
             <img
-              src="/images/akash-logo.png"
+              src="/images/akash-logo.jpg"
               alt="ThisIsAkashShow"
               className="h-11 w-11 rounded-full object-cover border-2 border-emerald-400/60 shadow-md bg-slate-900/40"
               onError={(e) => { e.currentTarget.src = "/images/akash-logo.jpg"; }}

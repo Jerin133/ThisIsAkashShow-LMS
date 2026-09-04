@@ -14,11 +14,11 @@ const AdminSidebar = () => {
   const navigate = useNavigate();
 
   const links = [
-    { name: "Dashboard",  path: "/admin/dashboard",  icon: LayoutDashboard },
-    { name: "Courses",    path: "/admin/courses",     icon: BookOpen },
-    { name: "Students",   path: "/admin/students",    icon: Users },
-    { name: "Analytics",  path: "/admin/analytics",   icon: BarChart3 },
-    { name: "Payments",   path: "/admin/payments",    icon: CreditCard },
+    { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
+    { name: "Courses", path: "/admin/courses", icon: BookOpen },
+    { name: "Students", path: "/admin/students", icon: Users },
+    { name: "Analytics", path: "/admin/analytics", icon: BarChart3 },
+    { name: "Payments", path: "/admin/payments", icon: CreditCard },
   ];
 
   const handleLogout = async () => {
@@ -31,7 +31,7 @@ const AdminSidebar = () => {
       {/* Brand Header */}
       <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4.5">
         <img
-          src="/images/akash-logo.png"
+          src="/images/akash-logo.jpg"
           alt="ThisIsAkashShow"
           className="h-9 w-9 rounded-full object-cover border-2 border-emerald-500 shadow-sm bg-slate-50"
           onError={(e) => { e.currentTarget.src = "/images/akash-logo.jpg"; }}
@@ -51,10 +51,9 @@ const AdminSidebar = () => {
               key={link.path}
               to={link.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-4 py-2.5 text-xs font-bold transition ${
-                  isActive
-                    ? "bg-emerald-50 text-emerald-700 shadow-2xs border border-emerald-100"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                `flex items-center gap-3 rounded-xl px-4 py-2.5 text-xs font-bold transition ${isActive
+                  ? "bg-emerald-50 text-emerald-700 shadow-2xs border border-emerald-100"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 }`
               }
             >

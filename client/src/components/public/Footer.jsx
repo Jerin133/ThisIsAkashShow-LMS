@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="md:col-span-2 space-y-3">
             <Link to="/" className="flex items-center gap-3 text-lg font-bold text-slate-900 tracking-tight">
               <img
-                src="/images/akash-logo.png"
+                src="/images/akash-logo.jpg"
                 alt="ThisIsAkashShow"
                 className="h-9 w-9 rounded-full object-cover border-2 border-emerald-500 shadow-sm bg-slate-50"
                 onError={(e) => { e.currentTarget.src = "/images/akash-logo.jpg"; }}

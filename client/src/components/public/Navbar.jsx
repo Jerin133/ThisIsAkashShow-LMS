@@ -33,7 +33,7 @@ const Navbar = () => {
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-3 text-lg font-bold text-slate-900 tracking-tight group">
           <img
-            src="/images/akash-logo.png"
+            src="/images/akash-logo.jpg"
             alt="ThisIsAkashShow"
             className="h-10 w-10 rounded-full object-cover border-2 border-emerald-500 shadow-sm shadow-emerald-500/20 group-hover:scale-105 transition bg-slate-50"
             onError={(e) => { e.currentTarget.src = "/images/akash-logo.jpg"; }}
