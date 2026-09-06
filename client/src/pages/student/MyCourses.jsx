@@ -87,16 +87,25 @@ const MyCourses = () => {
               className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xs hover:shadow-md hover:border-emerald-300/80 transition-all duration-300 group"
             >
               {/* Clean Light Thumbnail / Header */}
-              <div className="h-44 bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/60 p-6 flex flex-col justify-between border-b border-slate-100 relative overflow-hidden">
-                <span className="w-fit rounded-lg bg-white px-2.5 py-1 text-xs font-bold text-emerald-700 shadow-2xs border border-emerald-100 z-10">
+              <div className="relative h-44 w-full overflow-hidden bg-slate-900 border-b border-slate-100 flex flex-col justify-between p-5">
+                <img
+                  src={item.thumbnailUrl || "/images/digital-marketing-cartoon.jpg"}
+                  alt={item.title}
+                  className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    e.currentTarget.src = "/images/digital-marketing-cartoon.jpg";
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-slate-950/20" />
+                <span className="w-fit rounded-lg bg-white/95 backdrop-blur-xs px-2.5 py-1 text-xs font-bold text-emerald-800 shadow-2xs border border-white/60 z-10">
                   {item.level || "Beginner"}
                 </span>
                 <div className="z-10">
-                  <h3 className="font-extrabold text-lg text-slate-900 leading-snug line-clamp-1 group-hover:text-emerald-600 transition-colors">
+                  <h3 className="font-extrabold text-lg text-white leading-snug line-clamp-1 group-hover:text-emerald-300 transition-colors drop-shadow-xs">
                     {item.title}
                   </h3>
-                  <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1 font-semibold">
-                    <Clock size={13} className="text-emerald-600" /> {item.duration || "Self-Paced"} • {item.totalLessons} Lessons
+                  <p className="text-xs text-slate-200 flex items-center gap-1.5 mt-1 font-medium">
+                    <Clock size={13} className="text-emerald-400" /> {item.duration || "Self-Paced"} • {item.totalLessons} Lessons
                   </p>
                 </div>
               </div>

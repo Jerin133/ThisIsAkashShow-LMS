@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getCourseById, checkCourseAccess } from "../../services/api";
 import CheckoutModal from "../../components/checkout/CheckoutModal";
+import CourseRatingModal from "../../components/student/CourseRatingModal";
 import {
   BookOpen,
   CheckCircle,
@@ -15,6 +16,8 @@ import {
   ChevronUp,
   FileText,
   AlertCircle,
+  Star,
+  MessageSquare,
 } from "lucide-react";
 
 const CourseDetails = () => {
@@ -27,6 +30,7 @@ const CourseDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
   const [expandedModules, setExpandedModules] = useState({});
 
   useEffect(() => {
@@ -126,11 +130,25 @@ const CourseDetails = () => {
         <div className="mx-auto max-w-7xl relative z-10">
           <div className="grid gap-12 lg:grid-cols-3 lg:items-center">
             <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="rounded-full bg-emerald-50 px-3.5 py-1 text-xs font-bold text-emerald-700 border border-emerald-200 shadow-2xs">
                   {course.level || "Beginner"}
                 </span>
                 <span className="text-xs font-medium text-slate-500">• {course.duration || "10 Weeks"}</span>
+                {Number(course.totalRatings) > 0 ? (
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/70">
+                    <Star size={13} className="fill-amber-400 text-amber-500" />
+                    <span>{Number(course.averageRating).toFixed(1)}</span>
+                    <span className="text-slate-500 font-normal">
+                      ({course.totalRatings} {course.totalRatings === 1 ? "rating" : "ratings"})
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                    <Star size={13} className="text-slate-400" />
+                    <span>Not yet rated (0 ratings)</span>
+                  </div>
+                )}
               </div>
 
               <h1 className="text-3xl font-extrabold sm:text-4xl lg:text-5xl leading-tight text-slate-900 tracking-tight">
@@ -247,20 +265,131 @@ const CourseDetails = () => {
                 ))}
               </div>
             </div>
+
+            {/* Course Ratings & Student Reviews Section */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Student Feedback & Ratings</h2>
+                  <p className="text-xs text-gray-500 mt-1">Real analytics based on verified student reviews</p>
+                </div>
+                {hasAccess && (
+                  <button
+                    onClick={() => setShowRatingModal(true)}
+                    className="inline-flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-50 hover:bg-amber-100 text-amber-700 px-4 py-2 text-xs font-bold transition cursor-pointer self-start sm:self-auto"
+                  >
+                    <Star size={14} className="fill-amber-400 text-amber-500" />
+                    <span>Rate / Review Course</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Analytics Score Banner */}
+              <div className="flex flex-col sm:flex-row items-center gap-8 bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                <div className="text-center sm:border-r border-slate-200 sm:pr-8 shrink-0">
+                  <p className="text-5xl font-black text-slate-900">
+                    {Number(course.totalRatings) > 0 ? Number(course.averageRating).toFixed(1) : "0.0"}
+                  </p>
+                  <div className="flex items-center justify-center gap-1 my-2">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        size={16}
+                        className={
+                          Number(course.totalRatings) > 0 && s <= Math.round(Number(course.averageRating) || 0)
+                            ? "fill-amber-400 text-amber-400"
+                            : "text-slate-300"
+                        }
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs font-bold text-slate-500">Course Rating</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    ({course.totalRatings || 0} {Number(course.totalRatings) === 1 ? "review" : "reviews"})
+                  </p>
+                </div>
+
+                <div className="flex-1 w-full space-y-2">
+                  {[5, 4, 3, 2, 1].map((stars) => {
+                    const count = course.ratingAnalytics?.distribution?.[stars] || 0;
+                    const total = Number(course.totalRatings) || 0;
+                    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                    return (
+                      <div key={stars} className="flex items-center gap-3 text-xs">
+                        <span className="w-12 font-bold text-slate-600 flex items-center gap-1">
+                          {stars} <Star size={11} className="fill-amber-400 text-amber-400" />
+                        </span>
+                        <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-amber-400 transition-all duration-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="w-10 text-right text-slate-400 font-medium">{pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Reviews list or empty state */}
+              {course.ratingAnalytics?.reviews?.length > 0 ? (
+                <div className="space-y-4 pt-2">
+                  <h3 className="text-sm font-bold text-slate-900">Recent Student Reviews</h3>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {course.ratingAnalytics.reviews.map((rev) => (
+                      <div key={rev.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-4 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-800">{rev.userName}</span>
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <Star
+                                key={s}
+                                size={11}
+                                className={s <= rev.rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {rev.review && (
+                          <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                            "{rev.review}"
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center">
+                  <Star size={24} className="mx-auto text-slate-300 mb-2" />
+                  <p className="text-xs font-bold text-slate-700">No student reviews yet</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Enroll now and be the first student to share your review and feedback!
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right: Sticky Enrollment Card */}
           <div>
             <div className="sticky top-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-md space-y-6">
-              {/* Header Box */}
-              <div className="h-44 rounded-2xl bg-gradient-to-br from-emerald-800 via-teal-700 to-slate-900 p-6 text-white flex flex-col justify-between shadow-md shadow-emerald-500/20">
-                <span className="w-fit rounded-full bg-white/20 px-3 py-0.5 text-xs font-bold backdrop-blur-sm border border-white/20">
-                  Course Enrollment
-                </span>
-                <div>
-                  <p className="text-xs font-semibold text-emerald-200">One-Time Fee</p>
-                  <p className="text-3xl font-extrabold tracking-tight">{formattedPrice}</p>
-                </div>
+              {/* Course Thumbnail */}
+              <div className="aspect-video w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 relative shadow-sm">
+                <img
+                  src={course.thumbnail_url || "/images/digital-marketing-cartoon.jpg"}
+                  alt={course.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = "/images/digital-marketing-cartoon.jpg";
+                  }}
+                />
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-slate-400">One-Time Lifetime Access</p>
+                <p className="text-3xl font-extrabold text-slate-900 tracking-tight mt-0.5">{formattedPrice}</p>
               </div>
 
               {/* Action Button */}
@@ -318,6 +447,20 @@ const CourseDetails = () => {
         onClose={() => setShowCheckout(false)}
         course={course}
         user={user}
+      />
+
+      {/* Course Rating Modal */}
+      <CourseRatingModal
+        courseId={courseId}
+        courseTitle={course?.title}
+        isOpen={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        onRatingSubmitted={() => {
+          // Re-fetch course info to reflect new rating in analytics
+          getCourseById(courseId).then((res) => {
+            if (res.success && res.data) setCourse(res.data);
+          });
+        }}
       />
     </div>
   );

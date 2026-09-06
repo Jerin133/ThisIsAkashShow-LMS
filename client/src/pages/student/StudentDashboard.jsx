@@ -151,30 +151,44 @@ const StudentDashboard = () => {
             {courses.slice(0, 3).map((item) => (
               <div
                 key={item.enrollmentId}
-                className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xs hover:shadow-md transition flex flex-col justify-between group"
               >
-                <div>
-                  <span className="rounded-full bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-semibold">
+                <div className="relative aspect-video w-full overflow-hidden bg-slate-900">
+                  <img
+                    src={item.thumbnailUrl || "/images/digital-marketing-cartoon.jpg"}
+                    alt={item.title}
+                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/digital-marketing-cartoon.jpg";
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+                  <span className="absolute bottom-3 left-3 rounded-full bg-slate-950/80 backdrop-blur-xs border border-white/20 text-emerald-300 px-2.5 py-0.5 text-xs font-semibold">
                     {item.progressPercent}% Completed
                   </span>
-                  <h3 className="mt-3 text-lg font-bold text-gray-900 line-clamp-1">
-                    {item.title}
-                  </h3>
-                  <p className="mt-1 text-xs text-gray-500 line-clamp-2">
-                    {item.shortDescription || "Continue with your video lectures and notes."}
-                  </p>
                 </div>
 
-                <div className="mt-6 border-t border-slate-100 pt-4 flex items-center justify-between">
-                  <span className="text-xs font-medium text-slate-400">
-                    {item.completedLessons} / {item.totalLessons} Lessons
-                  </span>
-                  <Link
-                    to={`/learn/${item.courseId}`}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm shadow-emerald-500/20 transition active:scale-95"
-                  >
-                    <Play size={13} /> Continue
-                  </Link>
+                <div className="p-5 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 line-clamp-1 group-hover:text-emerald-600 transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500 line-clamp-2">
+                      {item.shortDescription || "Continue with your video lectures and notes."}
+                    </p>
+                  </div>
+
+                  <div className="mt-5 border-t border-slate-100 pt-3.5 flex items-center justify-between">
+                    <span className="text-xs font-medium text-slate-400">
+                      {item.completedLessons} / {item.totalLessons} Lessons
+                    </span>
+                    <Link
+                      to={`/learn/${item.courseId}`}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs shadow-emerald-500/20 transition active:scale-95"
+                    >
+                      <Play size={13} /> Continue
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import emailjs from "@emailjs/browser";
-import { Mail, Phone, MapPin, Clock, CheckCircle, Send, MessageSquare, AlertCircle } from "lucide-react";
+import { Mail, Phone, Clock, CheckCircle, Send, MessageSquare, AlertCircle } from "lucide-react";
 
 // ─── EmailJS credentials ─────────────────────────────────────────────────────
 // Fill these in after setting up your EmailJS account (see setup guide below)
@@ -61,13 +61,6 @@ const Contact = () => {
       color: "bg-emerald-50 text-emerald-600",
     },
     {
-      icon: MapPin,
-      title: "Location",
-      detail: "Chennai, Tamil Nadu",
-      sub: "India — 600001",
-      color: "bg-teal-50 text-teal-600",
-    },
-    {
       icon: Clock,
       title: "Support Hours",
       detail: "9:00 AM – 6:00 PM",
@@ -96,8 +89,8 @@ const Contact = () => {
 
       {/* Contact Info Cards */}
       <section className="bg-white border-b border-slate-200/80">
-        <div className="mx-auto max-w-6xl px-6 py-12">
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto max-w-3xl px-6 py-12">
+          <div className="grid gap-5 sm:grid-cols-3">
             {contactCards.map(({ icon: Icon, title, detail, sub, color }) => (
               <div key={title} className="rounded-2xl bg-slate-50/70 border border-slate-200/80 shadow-2xs p-6 flex flex-col gap-3 hover:bg-white hover:shadow-sm transition">
                 <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${color}`}>

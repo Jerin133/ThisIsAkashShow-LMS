@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
+import { uploadCourseThumbnail, updateCourse } from "../../services/api";
 import {
   ArrowLeft,
   Plus,
@@ -13,6 +14,11 @@ import {
   AlertCircle,
   Globe,
   Lock,
+  Upload,
+  Image as ImageIcon,
+  Check,
+  Link as LinkIcon,
+  X,
 } from "lucide-react";
 
 const ManageCourse = () => {
@@ -38,6 +44,10 @@ const ManageCourse = () => {
     description: "",
   });
 
+  const thumbnailInputRef = useRef(null);
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
+
   const [courseForm, setCourseForm] = useState({
     title: "",
     shortDescription: "",
@@ -45,6 +55,7 @@ const ManageCourse = () => {
     price: "",
     duration: "",
     level: "Beginner",
+    thumbnailUrl: "",
   });
 
   const fetchCourse = async () => {
@@ -66,7 +77,57 @@ const ManageCourse = () => {
       price: data.price || "",
       duration: data.duration || "",
       level: data.level || "Beginner",
+      thumbnailUrl: data.thumbnail_url || "",
     });
+    setPreviewError(false);
+  };
+
+  const handleThumbnailUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file (PNG, JPG, WEBP).");
+      return;
+    }
+
+    try {
+      setUploadingThumbnail(true);
+      setError("");
+
+      // Upload via backend server with service role bypass
+      const res = await uploadCourseThumbnail(file);
+      if (res?.success && res.data?.url) {
+        setCourseForm((prev) => ({ ...prev, thumbnailUrl: res.data.url }));
+        setPreviewError(false);
+      } else {
+        throw new Error(res?.message || "Failed to upload image");
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      // Fallback: try client supabase upload if backend is unreachable
+      try {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `course-thumb-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        const { error: uploadErr } = await supabase.storage
+          .from("course-thumbnails")
+          .upload(fileName, file, { cacheControl: "3600", upsert: true });
+
+        if (uploadErr) throw uploadErr;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("course-thumbnails").getPublicUrl(fileName);
+
+        setCourseForm((prev) => ({ ...prev, thumbnailUrl: publicUrl }));
+        setPreviewError(false);
+      } catch (sbErr) {
+        setError("Failed to upload thumbnail: " + (err.response?.data?.message || err.message || sbErr.message));
+      }
+    } finally {
+      setUploadingThumbnail(false);
+      if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+    }
   };
 
   const fetchModules = async () => {
@@ -142,35 +203,65 @@ const ManageCourse = () => {
 
   // Update Course Details
   const handleUpdateCourse = async (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     try {
       setPublishLoading(true);
       setError("");
 
-      const { data, error } = await supabase
-        .from("courses")
-        .update({
-          title: courseForm.title.trim(),
-          short_description: courseForm.shortDescription.trim(),
-          description: courseForm.description.trim(),
-          price: Number(courseForm.price) || 0,
-          duration: courseForm.duration.trim(),
-          level: courseForm.level,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", courseId)
-        .select()
-        .single();
+      const payload = {
+        title: courseForm.title.trim(),
+        short_description: courseForm.shortDescription.trim(),
+        description: courseForm.description.trim(),
+        price: Number(courseForm.price) || 0,
+        duration: courseForm.duration.trim(),
+        level: courseForm.level,
+        thumbnail_url: courseForm.thumbnailUrl?.trim() || null,
+      };
 
-      if (error) throw error;
+      let updatedData = null;
 
-      setCourse(data);
+      // 1. Try Backend API
+      try {
+        const res = await updateCourse(courseId, payload);
+        if (res?.success && res.data) {
+          updatedData = res.data;
+        }
+      } catch (apiErr) {
+        console.warn("Backend updateCourse endpoint error, trying Supabase direct:", apiErr);
+      }
+
+      // 2. Fallback to Supabase client if API didn't respond
+      if (!updatedData) {
+        const { data, error: sbError } = await supabase
+          .from("courses")
+          .update({
+            ...payload,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", courseId)
+          .select()
+          .single();
+
+        if (sbError) throw sbError;
+        updatedData = data;
+      }
+
+      setCourse(updatedData);
+      setCourseForm({
+        title: updatedData.title || "",
+        shortDescription: updatedData.short_description || "",
+        description: updatedData.description || "",
+        price: updatedData.price || "",
+        duration: updatedData.duration || "",
+        level: updatedData.level || "Beginner",
+        thumbnailUrl: updatedData.thumbnail_url || "",
+      });
       setShowEditCourseModal(false);
       setSuccessMessage("Course details updated successfully!");
       setTimeout(() => setSuccessMessage(""), 4000);
     } catch (err) {
       console.error(err);
-      setError(err.message || "Failed to update course.");
+      setError(err.response?.data?.message || err.message || "Failed to update course.");
     } finally {
       setPublishLoading(false);
     }
@@ -327,14 +418,21 @@ const ManageCourse = () => {
 
       {/* Course Information Card */}
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-800">
-              <BookOpen size={20} />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
+              <img
+                src={course.thumbnail_url || "/images/digital-marketing-cartoon.jpg"}
+                alt={course.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "/images/digital-marketing-cartoon.jpg";
+                }}
+              />
             </div>
             <div>
               <h2 className="text-base font-bold text-gray-900">Course Information</h2>
-              <p className="text-xs text-gray-500">Overview & pricing details</p>
+              <p className="text-xs text-gray-500">Overview, thumbnail & pricing details</p>
             </div>
           </div>
 
@@ -533,13 +631,32 @@ const ManageCourse = () => {
         )}
       </section>
 
-      {/* Edit Course Modal */}
+      {/* Edit Course Modal (Responsive & Scrollable) */}
       {showEditCourseModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl space-y-4">
-            <h3 className="text-lg font-bold text-gray-900">Edit Course Details</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4 backdrop-blur-xs overflow-y-auto">
+          <div className="relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden my-auto border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Sticky Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white shrink-0">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">Edit Course Details</h3>
+                <p className="text-[11px] text-slate-500">Update course metadata, pricing, and thumbnail</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEditCourseModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-            <form onSubmit={handleUpdateCourse} className="space-y-4">
+            {/* Modal Scrollable Form Body */}
+            <form
+              id="edit-course-form"
+              onSubmit={handleUpdateCourse}
+              className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4"
+            >
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Course Title *
@@ -572,21 +689,21 @@ const ManageCourse = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Price (INR)
-                </label>
-                <input
-                  type="number"
-                  value={courseForm.price}
-                  onChange={(e) =>
-                    setCourseForm({ ...courseForm, price: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-gray-300 p-2.5 text-sm outline-none focus:border-black"
-                />
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Price (INR)
+                  </label>
+                  <input
+                    type="number"
+                    value={courseForm.price}
+                    onChange={(e) =>
+                      setCourseForm({ ...courseForm, price: e.target.value })
+                    }
+                    className="w-full rounded-lg border border-gray-300 p-2.5 text-sm outline-none focus:border-black"
+                  />
+                </div>
 
-              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Duration
@@ -604,22 +721,127 @@ const ManageCourse = () => {
                     className="w-full rounded-lg border border-gray-300 p-2.5 text-sm outline-none focus:border-black"
                   />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Level
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Level
+                </label>
+                <select
+                  value={courseForm.level}
+                  onChange={(e) =>
+                    setCourseForm({ ...courseForm, level: e.target.value })
+                  }
+                  className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm outline-none focus:border-black"
+                >
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+              </div>
+
+              {/* Course Thumbnail Setting */}
+              <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-gray-800">
+                    Course Thumbnail
                   </label>
-                  <select
-                    value={courseForm.level}
-                    onChange={(e) =>
-                      setCourseForm({ ...courseForm, level: e.target.value })
-                    }
-                    className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm outline-none focus:border-black"
-                  >
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                  </select>
+                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    16:9 Aspect
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-start gap-3.5">
+                  <div className="h-20 w-32 rounded-xl overflow-hidden bg-slate-200 border border-slate-300 shrink-0 relative shadow-2xs mx-auto sm:mx-0">
+                    <img
+                      key={courseForm.thumbnailUrl || "thumb-preview"}
+                      src={
+                        previewError || !courseForm.thumbnailUrl
+                          ? "/images/digital-marketing-cartoon.jpg"
+                          : courseForm.thumbnailUrl
+                      }
+                      alt="Thumbnail preview"
+                      className="w-full h-full object-cover"
+                      onError={() => setPreviewError(true)}
+                    />
+                  </div>
+
+                  <div className="flex-1 w-full space-y-2">
+                    <input
+                      type="file"
+                      ref={thumbnailInputRef}
+                      onChange={handleThumbnailUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => thumbnailInputRef.current?.click()}
+                      disabled={uploadingThumbnail}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer shadow-2xs"
+                    >
+                      {uploadingThumbnail ? (
+                        <>
+                          <div className="h-3 w-3 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+                          <span>Uploading image...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={13} className="text-emerald-600" />
+                          <span>Upload From Computer</span>
+                        </>
+                      )}
+                    </button>
+
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={courseForm.thumbnailUrl}
+                        onChange={(e) => {
+                          setCourseForm((prev) => ({ ...prev, thumbnailUrl: e.target.value.trim() }));
+                          setPreviewError(false);
+                        }}
+                        placeholder="Paste image URL (https://...)"
+                        className="w-full rounded-lg border border-slate-300 bg-white pl-8 pr-3 py-2 text-xs outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                      />
+                      <LinkIcon size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    </div>
+
+                    {previewError && courseForm.thumbnailUrl && (
+                      <p className="text-[10px] text-amber-600 font-medium">
+                        ⚠️ Couldn't load image from this URL. Please verify the link or pick a preset below.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="pt-2 border-t border-slate-200/60">
+                  <span className="text-[10px] text-slate-500 font-semibold block mb-1.5">Quick Presets:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { label: "Marketing Cartoon", url: "/images/digital-marketing-cartoon.jpg" },
+                      { label: "Master Akash", url: "/images/instructor-hero.jpg" },
+                      { label: "Student Classroom", url: "/images/hero-student.jpg" },
+                      { label: "Default", url: "/images/course-default.jpg" },
+                    ].map((p) => (
+                      <button
+                        key={p.url}
+                        type="button"
+                        onClick={() => {
+                          setCourseForm((prev) => ({ ...prev, thumbnailUrl: p.url }));
+                          setPreviewError(false);
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition cursor-pointer ${
+                          courseForm.thumbnailUrl === p.url
+                            ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-bold shadow-2xs"
+                            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -639,24 +861,29 @@ const ManageCourse = () => {
                   className="w-full rounded-lg border border-gray-300 p-2.5 text-sm outline-none focus:border-black"
                 />
               </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t">
-                <button
-                  type="button"
-                  onClick={() => setShowEditCourseModal(false)}
-                  className="rounded-lg border px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={publishLoading}
-                  className="rounded-lg bg-black px-5 py-2 text-xs font-semibold text-white hover:bg-gray-800 disabled:opacity-50"
-                >
-                  {publishLoading ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
             </form>
+
+            {/* Modal Sticky Footer - Always Visible on Mobile & Desktop */}
+            <div className="flex items-center justify-end gap-3 px-5 py-3.5 border-t border-slate-100 bg-slate-50/95 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowEditCourseModal(false)}
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="edit-course-form"
+                disabled={publishLoading}
+                className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white hover:bg-black transition shadow-sm disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+              >
+                {publishLoading && (
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                )}
+                <span>{publishLoading ? "Saving Changes..." : "Save Changes"}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

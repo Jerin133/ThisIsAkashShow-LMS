@@ -1,4 +1,5 @@
 const supabase = require("../config/supabase");
+const ratingService = require("../services/ratingService");
 
 // 1. Get All Published Courses (Public)
 const getAllCourses = async (req, res) => {
@@ -11,7 +12,9 @@ const getAllCourses = async (req, res) => {
 
     if (error) throw error;
 
-    // Calculate lessons count & total duration for each course
+    const ratingSummaries = await ratingService.getAllCoursesRatingSummary();
+
+    // Calculate lessons count & total duration & rating analytics for each course
     const formattedCourses = (courses || []).map((course) => {
       let totalLessons = 0;
       let totalSeconds = 0;
@@ -27,10 +30,14 @@ const getAllCourses = async (req, res) => {
         });
       }
 
+      const ratingData = ratingSummaries[course.id] || { averageRating: 0, totalRatings: 0 };
+
       return {
         ...course,
         totalLessons,
         totalHours: (totalSeconds / 3600).toFixed(1),
+        averageRating: Number(ratingData.averageRating) || 0,
+        totalRatings: Number(ratingData.totalRatings) || 0,
       };
     });
 
@@ -108,11 +115,16 @@ const getCourseDetails = async (req, res) => {
         })),
     }));
 
+    const ratingAnalytics = await ratingService.getCourseRatingAnalytics(id);
+
     return res.json({
       success: true,
       data: {
         ...course,
         curriculum,
+        ratingAnalytics,
+        averageRating: Number(ratingAnalytics.averageRating) || 0,
+        totalRatings: Number(ratingAnalytics.totalRatings) || 0,
       },
     });
   } catch (error) {
@@ -260,9 +272,190 @@ const getLessonMedia = async (req, res) => {
   }
 };
 
+// 5. Submit or Update Course Rating (Student Only)
+const rateCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, review } = req.body;
+    const userId = req.user.id;
+    const userName =
+      req.user.user_metadata?.full_name ||
+      req.user.email?.split("@")[0] ||
+      "Student";
+
+    if (!rating || Number(rating) < 1 || Number(rating) > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating must be a number between 1 and 5",
+      });
+    }
+
+    const updatedAnalytics = await ratingService.addOrUpdateRating(
+      id,
+      userId,
+      userName,
+      Number(rating),
+      review
+    );
+
+    return res.json({
+      success: true,
+      message: "Rating submitted successfully",
+      data: updatedAnalytics,
+    });
+  } catch (error) {
+    console.error("Rate Course Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to submit rating",
+    });
+  }
+};
+
+// 6. Get Current User's Rating for Course
+const getMyCourseRating = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const userRating = await ratingService.getUserRatingForCourse(id, userId);
+
+    return res.json({
+      success: true,
+      data: userRating,
+    });
+  } catch (error) {
+    console.error("Get My Rating Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch user rating",
+    });
+  }
+};
+
+// 7. Get Full Course Ratings & Reviews (Public)
+const getCourseRatings = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const analytics = await ratingService.getCourseRatingAnalytics(id);
+
+    return res.json({
+      success: true,
+      data: analytics,
+    });
+  } catch (error) {
+    console.error("Get Course Ratings Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch course ratings",
+    });
+  }
+};
+
+// 8. Upload Course Thumbnail (Admin service-role upload to bypass RLS)
+const uploadCourseThumbnail = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No image file provided" });
+    }
+
+    const file = req.file;
+    const fileExt = (file.originalname?.split(".").pop() || "jpg").toLowerCase();
+    const fileName = `course-thumb-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+
+    // Upload using Supabase service-role client (bypasses RLS)
+    const { error: uploadErr } = await supabase.storage
+      .from("course-thumbnails")
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype || "image/jpeg",
+        cacheControl: "3600",
+        upsert: true,
+      });
+
+    if (uploadErr) {
+      console.error("Supabase Storage Error:", uploadErr);
+      throw uploadErr;
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("course-thumbnails").getPublicUrl(fileName);
+
+    return res.json({
+      success: true,
+      data: {
+        url: publicUrl,
+        path: fileName,
+      },
+      message: "Thumbnail uploaded successfully",
+    });
+  } catch (error) {
+    console.error("Thumbnail Upload Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to upload thumbnail",
+    });
+  }
+};
+
+// 9. Update Course Details (Admin)
+const updateCourseDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      title,
+      short_description,
+      description,
+      price,
+      duration,
+      level,
+      thumbnail_url,
+      is_published,
+    } = req.body;
+
+    const updates = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (title !== undefined) updates.title = title.trim();
+    if (short_description !== undefined) updates.short_description = short_description.trim();
+    if (description !== undefined) updates.description = description.trim();
+    if (price !== undefined) updates.price = Number(price) || 0;
+    if (duration !== undefined) updates.duration = duration.trim();
+    if (level !== undefined) updates.level = level;
+    if (thumbnail_url !== undefined) updates.thumbnail_url = thumbnail_url?.trim() || null;
+    if (is_published !== undefined) updates.is_published = Boolean(is_published);
+
+    const { data, error } = await supabase
+      .from("courses")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.json({
+      success: true,
+      data,
+      message: "Course updated successfully",
+    });
+  } catch (error) {
+    console.error("Update Course Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to update course",
+    });
+  }
+};
+
 module.exports = {
   getAllCourses,
   getCourseDetails,
   checkCourseAccess,
   getLessonMedia,
+  rateCourse,
+  getMyCourseRating,
+  getCourseRatings,
+  uploadCourseThumbnail,
+  updateCourseDetails,
 };

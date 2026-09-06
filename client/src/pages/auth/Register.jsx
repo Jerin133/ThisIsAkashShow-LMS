@@ -103,18 +103,7 @@ const Register = () => {
             ))}
           </div>
 
-          {/* Social proof */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex -space-x-2">
-                {["S", "R", "A", "K"].map((l, i) => (
-                  <div key={i} className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-900 text-[10px] font-bold text-white ${["bg-emerald-600", "bg-teal-600", "bg-green-600", "bg-emerald-700"][i]}`}>{l}</div>
-                ))}
-              </div>
-              <span className="text-xs text-emerald-300 font-medium">+200 students this month</span>
-            </div>
-            <p className="text-xs text-emerald-200/80 italic">"The best structured market analysis courses I've taken online."</p>
-          </div>
+
         </div>
 
         <div className="relative z-10">

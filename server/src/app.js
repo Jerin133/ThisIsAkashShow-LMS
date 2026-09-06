@@ -41,6 +41,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // Import Routes
+const authRoutes = require("./routes/authRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const studentRoutes = require("./routes/studentRoutes");
@@ -48,6 +49,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 
 // Mount Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/student", studentRoutes);

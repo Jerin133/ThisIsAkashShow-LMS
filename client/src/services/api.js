@@ -32,6 +32,12 @@ export const getCourses = async () => {
   return response.data;
 };
 
+// Public platform stats (no auth required — for Home page)
+export const getPublicStats = async () => {
+  const response = await api.get("/courses/public-stats");
+  return response.data;
+};
+
 export const getCourseById = async (id) => {
   const response = await api.get(`/courses/${id}`);
   return response.data;
@@ -44,6 +50,22 @@ export const checkCourseAccess = async (courseId) => {
 
 export const getLessonMedia = async (lessonId) => {
   const response = await api.get(`/courses/lessons/${lessonId}/media`);
+  return response.data;
+};
+
+// Course Rating API
+export const rateCourse = async (courseId, { rating, review }) => {
+  const response = await api.post(`/courses/${courseId}/rate`, { rating, review });
+  return response.data;
+};
+
+export const getMyCourseRating = async (courseId) => {
+  const response = await api.get(`/courses/${courseId}/my-rating`);
+  return response.data;
+};
+
+export const getCourseRatings = async (courseId) => {
+  const response = await api.get(`/courses/${courseId}/ratings`);
   return response.data;
 };
 
@@ -107,6 +129,23 @@ export const getAdminPayments = async () => {
 
 export const getAdminAnalytics = async () => {
   const response = await api.get("/admin/analytics");
+  return response.data;
+};
+
+// Course Management API
+export const uploadCourseThumbnail = async (file) => {
+  const formData = new FormData();
+  formData.append("thumbnail", file);
+  const response = await api.post("/courses/upload-thumbnail", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};
+
+export const updateCourse = async (courseId, courseData) => {
+  const response = await api.put(`/courses/${courseId}`, courseData);
   return response.data;
 };
 

@@ -68,19 +68,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Stats row */}
-      <section className="border-b border-slate-200/70 bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {stats.map(({ value, label }) => (
-              <div key={label} className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 shadow-2xs">
-                <p className="text-3xl font-extrabold text-emerald-600">{value}</p>
-                <p className="text-xs font-semibold text-slate-500 mt-1">{label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* Values */}
       <section className="py-20 px-6">

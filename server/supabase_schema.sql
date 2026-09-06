@@ -131,6 +131,18 @@ CREATE TABLE IF NOT EXISTS public.contact_messages (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 9. COURSE RATINGS & REVIEWS TABLE
+CREATE TABLE IF NOT EXISTS public.course_ratings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id UUID REFERENCES public.courses(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  rating INTEGER CHECK (rating >= 1 AND rating <= 5) NOT NULL,
+  review TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(course_id, user_id)
+);
+
 -- =========================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES FOR TABLES
 -- =========================================================
@@ -197,7 +209,8 @@ CREATE POLICY "Payments insertable by authenticated users" ON public.payments FO
 INSERT INTO storage.buckets (id, name, public)
 VALUES 
   ('course-videos', 'course-videos', false),
-  ('course-notes', 'course-notes', false)
+  ('course-notes', 'course-notes', false),
+  ('course-thumbnails', 'course-thumbnails', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 1. Policies for 'course-videos' bucket
@@ -241,3 +254,25 @@ DROP POLICY IF EXISTS "Allow authenticated reads to course-notes" ON storage.obj
 CREATE POLICY "Allow authenticated reads to course-notes"
 ON storage.objects FOR SELECT TO authenticated
 USING (bucket_id = 'course-notes');
+
+-- 3. Policies for 'course-thumbnails' bucket (Public read, authenticated insert/update/delete)
+DROP POLICY IF EXISTS "Allow public read of course-thumbnails" ON storage.objects;
+CREATE POLICY "Allow public read of course-thumbnails"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'course-thumbnails');
+
+DROP POLICY IF EXISTS "Allow authenticated uploads to course-thumbnails" ON storage.objects;
+CREATE POLICY "Allow authenticated uploads to course-thumbnails"
+ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (bucket_id = 'course-thumbnails');
+
+DROP POLICY IF EXISTS "Allow authenticated updates to course-thumbnails" ON storage.objects;
+CREATE POLICY "Allow authenticated updates to course-thumbnails"
+ON storage.objects FOR UPDATE TO authenticated
+USING (bucket_id = 'course-thumbnails');
+
+DROP POLICY IF EXISTS "Allow authenticated deletes to course-thumbnails" ON storage.objects;
+CREATE POLICY "Allow authenticated deletes to course-thumbnails"
+ON storage.objects FOR DELETE TO authenticated
+USING (bucket_id = 'course-thumbnails');
+

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
-import { Plus, Pencil, Eye, EyeOff, Globe, CheckCircle, AlertCircle } from "lucide-react";
+import { Plus, Pencil, Eye, EyeOff, Globe, CheckCircle, AlertCircle, Trash2 } from "lucide-react";
 
 const AdminCourses = () => {
   const [courses, setCourses] = useState([]);
@@ -9,6 +9,7 @@ const AdminCourses = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [togglingCourseId, setTogglingCourseId] = useState(null);
+  const [deletingCourseId, setDeletingCourseId] = useState(null);
 
   const fetchCourses = async () => {
     try {
@@ -72,6 +73,28 @@ const AdminCourses = () => {
       setError(err.message || "Failed to update course publish state.");
     } finally {
       setTogglingCourseId(null);
+    }
+  };
+
+  const handleDeleteCourse = async (course) => {
+    const confirmed = window.confirm(
+      `⚠️ Delete "${course.title}"?\n\nThis will permanently remove the course and all its data. This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      setDeletingCourseId(course.id);
+      setError("");
+      const { error } = await supabase.from("courses").delete().eq("id", course.id);
+      if (error) throw error;
+      setCourses((prev) => prev.filter((c) => c.id !== course.id));
+      setSuccessMessage(`"${course.title}" has been permanently deleted.`);
+      setTimeout(() => setSuccessMessage(""), 3500);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to delete course.");
+    } finally {
+      setDeletingCourseId(null);
     }
   };
 
@@ -146,16 +169,28 @@ const AdminCourses = () => {
                 {courses.map((course) => (
                   <tr key={course.id} className="hover:bg-gray-50/50 transition">
                     <td className="px-6 py-4">
-                      <div>
-                        <Link
-                          to={`/admin/courses/${course.id}`}
-                          className="font-bold text-gray-900 hover:underline"
-                        >
-                          {course.title}
-                        </Link>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {course.duration || "Self-Paced"}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-16 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
+                          <img
+                            src={course.thumbnail_url || "/images/digital-marketing-cartoon.jpg"}
+                            alt={course.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = "/images/digital-marketing-cartoon.jpg";
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Link
+                            to={`/admin/courses/${course.id}`}
+                            className="font-bold text-gray-900 hover:text-emerald-600 transition hover:underline"
+                          >
+                            {course.title}
+                          </Link>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {course.duration || "Self-Paced"}
+                          </p>
+                        </div>
                       </div>
                     </td>
 
@@ -193,12 +228,26 @@ const AdminCourses = () => {
                     </td>
 
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        to={`/admin/courses/${course.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:text-black transition"
-                      >
-                        <Pencil size={13} /> Manage Curriculum
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          to={`/admin/courses/${course.id}`}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:text-black transition"
+                        >
+                          <Pencil size={13} /> Manage
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteCourse(course)}
+                          disabled={deletingCourseId === course.id}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 hover:border-red-300 transition disabled:opacity-50"
+                          title="Delete course permanently"
+                        >
+                          {deletingCourseId === course.id ? (
+                            "Deleting…"
+                          ) : (
+                            <><Trash2 size={13} /> Delete</>
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -11,6 +11,7 @@ import {
 import ContentProtection from "../../components/security/ContentProtection";
 import ProtectedVideoPlayer from "../../components/security/ProtectedVideoPlayer";
 import CheckoutModal from "../../components/checkout/CheckoutModal";
+import CourseRatingModal from "../../components/student/CourseRatingModal";
 import {
   ArrowLeft,
   Play,
@@ -31,6 +32,7 @@ import {
   X,
   AlertCircle,
   Video,
+  Star,
 } from "lucide-react";
 
 const StudentCoursePlayer = () => {
@@ -51,6 +53,7 @@ const StudentCoursePlayer = () => {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("overview"); // overview | notes | resources
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Playback speed
@@ -292,6 +295,18 @@ const StudentCoursePlayer = () => {
               {progressPercent}% Complete
             </span>
           </div>
+
+          {/* Rate Course Button */}
+          {hasAccess && (
+            <button
+              onClick={() => setShowRatingModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-1.5 text-xs font-bold transition cursor-pointer"
+              title="Rate this course"
+            >
+              <Star size={13} className="fill-amber-400 text-amber-400" />
+              <span>Rate Course</span>
+            </button>
+          )}
 
           {!hasAccess && (
             <button
@@ -656,6 +671,14 @@ const StudentCoursePlayer = () => {
         onClose={() => setShowCheckout(false)}
         course={course}
         user={user}
+      />
+
+      {/* Course Rating Modal */}
+      <CourseRatingModal
+        courseId={courseId}
+        courseTitle={course?.title}
+        isOpen={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import PageProgress from "./components/ui/PageProgress";
 
 // Public Pages
 import Home from "./pages/public/Home";
@@ -11,6 +12,7 @@ import Contact from "./pages/public/Contact";
 // Auth Pages
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 // Student Pages
 import StudentDashboard from "./pages/student/StudentDashboard";
@@ -39,6 +41,8 @@ import AdminLayout from "./layouts/AdminLayout";
 function App() {
   return (
     <BrowserRouter>
+      {/* YouTube-style thin progress bar on every route change */}
+      <PageProgress />
       <Routes>
         {/* ================= PUBLIC ROUTES ================= */}
         <Route
@@ -98,6 +102,7 @@ function App() {
         {/* ================= AUTH ROUTES ================= */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* ================= DEDICATED STUDENT LEARNING CLASSROOM (Full Screen) ================= */}
         <Route
