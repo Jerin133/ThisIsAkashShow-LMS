@@ -85,10 +85,10 @@ const Register = () => {
           <div>
             <h2 className="text-4xl font-extrabold text-white leading-tight">
               Start your<br />
-              <span className="text-emerald-400">trading journey</span>
+              <span className="text-emerald-400">learning journey</span>
             </h2>
             <p className="mt-4 text-emerald-100/90 text-base leading-relaxed max-w-sm">
-              Join thousands of traders mastering in-demand price action and equity strategies with Akash.
+              Join to master the marketing and earning strategies with Akash.
             </p>
           </div>
 
