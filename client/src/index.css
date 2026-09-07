@@ -68,15 +68,3 @@ video, img, iframe, canvas {
   -moz-user-select: none;
   -ms-user-select: none;
 }
-
-/* Global Mobile Screen Capture & Touch Callout Suppression */
-* {
-  -webkit-touch-callout: none !important;
-}
-
-/* Preserve usability for actual form inputs */
-input, textarea, [contenteditable="true"] {
-  user-select: text !important;
-  -webkit-user-select: text !important;
-  -webkit-touch-callout: default !important;
-}
