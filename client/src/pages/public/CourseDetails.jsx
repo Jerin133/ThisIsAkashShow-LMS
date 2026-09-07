@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { getCourseById, checkCourseAccess } from "../../services/api";
 import CheckoutModal from "../../components/checkout/CheckoutModal";
 import CourseRatingModal from "../../components/student/CourseRatingModal";
+import AdBanner from "../../components/public/AdBanner";
 import {
   BookOpen,
   CheckCircle,
@@ -462,6 +463,11 @@ const CourseDetails = () => {
           });
         }}
       />
+
+      {/* Affiliate Ad Banner */}
+      <div className="mx-auto max-w-7xl px-6 pb-10">
+        <AdBanner />
+      </div>
     </div>
   );
 };

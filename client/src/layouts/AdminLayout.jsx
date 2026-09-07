@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import AdminSidebar from "../components/admin/AdminSidebar";
 import {
-  LayoutDashboard, BookOpen, Users, BarChart3, CreditCard, Menu, X, LogOut,
+  LayoutDashboard, BookOpen, Users, BarChart3, CreditCard, Menu, X, LogOut, Megaphone,
 } from "lucide-react";
 
 const AdminLayout = ({ children }) => {
@@ -16,6 +16,7 @@ const AdminLayout = ({ children }) => {
     { name: "Students", path: "/admin/students", icon: Users },
     { name: "Analytics", path: "/admin/analytics", icon: BarChart3 },
     { name: "Payments", path: "/admin/payments", icon: CreditCard },
+    { name: "Ads", path: "/admin/ads", icon: Megaphone },
   ];
 
   const handleLogout = async () => {

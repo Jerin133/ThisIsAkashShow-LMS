@@ -47,6 +47,7 @@ const courseRoutes = require("./routes/courseRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const contactRoutes = require("./routes/contactRoutes");
+const adRoutes = require("./routes/adRoutes");
 
 // Mount Routes
 app.use("/api/auth", authRoutes);
@@ -55,6 +56,7 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/ads", adRoutes);
 
 // 404 Route handler
 app.use((req, res) => {

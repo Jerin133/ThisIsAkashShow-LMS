@@ -8,6 +8,7 @@ import {
   CreditCard,
   LogOut,
   Sparkles,
+  Megaphone,
 } from "lucide-react";
 
 const AdminSidebar = () => {
@@ -19,6 +20,7 @@ const AdminSidebar = () => {
     { name: "Students", path: "/admin/students", icon: Users },
     { name: "Analytics", path: "/admin/analytics", icon: BarChart3 },
     { name: "Payments", path: "/admin/payments", icon: CreditCard },
+    { name: "Affiliate Ads", path: "/admin/ads", icon: Megaphone },
   ];
 
   const handleLogout = async () => {

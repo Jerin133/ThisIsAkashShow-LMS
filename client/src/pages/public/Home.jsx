@@ -8,6 +8,7 @@ import {
   ChevronLeft, ChevronRight,
 } from "lucide-react";
 import CourseCard from "../../components/public/CourseCard";
+import AdBanner from "../../components/public/AdBanner";
 
 const Home = () => {
   const [courses, setCourses] = useState([]);
@@ -347,6 +348,13 @@ const Home = () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── Affiliate Ad Banner ── */}
+      <section className="bg-slate-100/50 border-b border-slate-200/70 py-5 px-6">
+        <div className="mx-auto max-w-7xl">
+          <AdBanner className="rounded-2xl" />
         </div>
       </section>
 

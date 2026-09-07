@@ -1,4 +1,5 @@
 import { Target, Users, BookOpen, Clock, Heart, Lightbulb, Award, Zap, Sparkles } from "lucide-react";
+import AdBanner from "../../components/public/AdBanner";
 
 const About = () => {
   const stats = [
@@ -88,6 +89,13 @@ const About = () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Affiliate Ad Banner */}
+      <section className="bg-slate-50 border-t border-slate-200/70 py-6 px-6">
+        <div className="mx-auto max-w-5xl">
+          <AdBanner />
         </div>
       </section>
     </div>

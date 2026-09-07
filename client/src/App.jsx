@@ -30,6 +30,7 @@ import ManageModule from "./pages/admin/ManageModule";
 import AdminStudents from "./pages/admin/AdminStudents";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminAds from "./pages/admin/AdminAds";
 
 // Routes & Layouts
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -266,6 +267,19 @@ function App() {
               <RoleRoute allowedRole="admin">
                 <AdminLayout>
                   <AdminAnalytics />
+                </AdminLayout>
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/ads"
+          element={
+            <ProtectedRoute>
+              <RoleRoute allowedRole="admin">
+                <AdminLayout>
+                  <AdminAds />
                 </AdminLayout>
               </RoleRoute>
             </ProtectedRoute>

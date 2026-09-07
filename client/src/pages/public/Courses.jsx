@@ -7,6 +7,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import CourseCard from "../../components/public/CourseCard";
+import AdBanner from "../../components/public/AdBanner";
 
 const LEVELS = ["All", "Beginner", "Intermediate", "Advanced"];
 
@@ -230,6 +231,13 @@ const Courses = () => {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Affiliate Ad Banner */}
+      <section className="bg-slate-50 border-t border-slate-200/70 py-6 px-6">
+        <div className="mx-auto max-w-7xl">
+          <AdBanner />
+        </div>
       </section>
     </div>
   );
