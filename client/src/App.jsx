@@ -37,13 +37,16 @@ import RoleRoute from "./routes/RoleRoute";
 import PublicLayout from "./layouts/PublicLayout";
 import StudentLayout from "./layouts/StudentLayout";
 import AdminLayout from "./layouts/AdminLayout";
+import ScreenshotProtection from "./components/ui/ScreenshotProtection";
 
 function App() {
   return (
     <BrowserRouter>
-      {/* YouTube-style thin progress bar on every route change */}
-      <PageProgress />
-      <Routes>
+      {/* Anti-screenshot & anti-capture protection across web & mobile */}
+      <ScreenshotProtection>
+        {/* YouTube-style thin progress bar on every route change */}
+        <PageProgress />
+        <Routes>
         {/* ================= PUBLIC ROUTES ================= */}
         <Route
           path="/"
@@ -272,6 +275,7 @@ function App() {
           }
         />
       </Routes>
+      </ScreenshotProtection>
     </BrowserRouter>
   );
 }
