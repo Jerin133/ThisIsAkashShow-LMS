@@ -3,8 +3,9 @@ import {
   Plus, Trash2, ToggleLeft, ToggleRight, ExternalLink,
   Upload, Link2, ImageIcon, Tag, ArrowUp, ArrowDown, X, Edit2, Save
 } from "lucide-react";
+import { supabase } from "../../lib/supabase";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export default function AdminAds() {
   const [ads, setAds] = useState([]);
@@ -27,23 +28,16 @@ export default function AdminAds() {
   const [form, setForm] = useState(blankForm);
   const [imageFile, setImageFile] = useState(null);
 
-  const token = () => {
-    try {
-      const raw = localStorage.getItem("supabase.auth.token") ||
-        Object.values(localStorage).find(v => {
-          try { return JSON.parse(v)?.access_token; } catch { return false; }
-        });
-      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-      return parsed?.access_token || parsed?.session?.access_token || "";
-    } catch { return ""; }
+  const authHeader = async () => {
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token || "";
+    return { Authorization: `Bearer ${token}` };
   };
-
-  const authHeader = () => ({ Authorization: `Bearer ${token()}` });
 
   const fetchAds = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/ads/all`, { headers: authHeader() });
+      const res = await fetch(`${API_URL}/ads/all`, { headers: await authHeader() });
       const json = await res.json();
       if (json.success) setAds(json.data || []);
     } catch (e) {
@@ -106,11 +100,11 @@ export default function AdminAds() {
       else if (form.image_url) fd.append("image_url", form.image_url);
 
       const url = editingId
-        ? `${API_URL}/api/ads/${editingId}`
-        : `${API_URL}/api/ads`;
+        ? `${API_URL}/ads/${editingId}`
+        : `${API_URL}/ads`;
       const method = editingId ? "PUT" : "POST";
 
-      const res = await fetch(url, { method, headers: authHeader(), body: fd });
+      const res = await fetch(url, { method, headers: await authHeader(), body: fd });
       const json = await res.json();
       if (!json.success) throw new Error(json.message);
 
@@ -128,9 +122,9 @@ export default function AdminAds() {
     try {
       const fd = new FormData();
       fd.append("is_active", !ad.is_active);
-      const res = await fetch(`${API_URL}/api/ads/${ad.id}`, {
+      const res = await fetch(`${API_URL}/ads/${ad.id}`, {
         method: "PUT",
-        headers: authHeader(),
+        headers: await authHeader(),
         body: fd,
       });
       const json = await res.json();
@@ -144,9 +138,9 @@ export default function AdminAds() {
   const deleteAd = async (id) => {
     if (!window.confirm("Delete this ad permanently?")) return;
     try {
-      const res = await fetch(`${API_URL}/api/ads/${id}`, {
+      const res = await fetch(`${API_URL}/ads/${id}`, {
         method: "DELETE",
-        headers: authHeader(),
+        headers: await authHeader(),
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.message);
@@ -162,8 +156,8 @@ export default function AdminAds() {
     try {
       const fd = new FormData();
       fd.append("display_order", newOrder);
-      await fetch(`${API_URL}/api/ads/${ad.id}`, {
-        method: "PUT", headers: authHeader(), body: fd,
+      await fetch(`${API_URL}/ads/${ad.id}`, {
+        method: "PUT", headers: await authHeader(), body: fd,
       });
       fetchAds();
     } catch (_) {}
