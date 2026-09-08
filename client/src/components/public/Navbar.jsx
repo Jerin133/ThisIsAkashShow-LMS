@@ -114,14 +114,14 @@ const Navbar = () => {
     <nav className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-lg transition-all">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5 gap-4">
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-3 text-lg font-bold text-slate-900 tracking-tight group shrink-0">
+        <Link to="/" className="flex items-center gap-2.5 sm:gap-3 text-lg font-bold text-slate-900 tracking-tight group shrink-0">
           <img
             src="/images/akash-logo.jpg"
             alt="ThisIsAkashShow"
-            className="h-10 w-10 rounded-full object-cover border-2 border-emerald-500 shadow-sm shadow-emerald-500/20 group-hover:scale-105 transition bg-slate-50"
+            className="h-9 w-9 sm:h-10 sm:w-10 rounded-full object-cover border-2 border-emerald-500 shadow-sm shadow-emerald-500/20 group-hover:scale-105 transition bg-slate-50 shrink-0"
             onError={(e) => { e.currentTarget.src = "/images/akash-logo.jpg"; }}
           />
-          <span className="font-black tracking-tight text-slate-900 text-lg sm:text-xl group-hover:text-emerald-600 transition hidden sm:block">
+          <span className="font-black tracking-tight text-slate-900 text-base sm:text-xl group-hover:text-emerald-600 transition">
             ThisIsAkashShow
           </span>
         </Link>
